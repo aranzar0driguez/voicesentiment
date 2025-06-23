@@ -1,19 +1,20 @@
-#import whisper
 import whisper_timestamped as whisper_ts
-from transformers import AutoTokenizer, TFAutoModelForSequenceClassification, AutoModelForSequenceClassification
-import numpy as np
 from scipy.special import softmax
 import nltk.data
 from nltk.tokenize import RegexpTokenizer
 from sentence import Sentence
 import sentimentAnalysis
-
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+import plotly.express as px
 
 sentences = []
 
 # Speech to text
 
-audio = whisper_ts.load_audio("/Users/aranzarodriguez/Voice Sentiment Tracking/voicesentiment/client/audio/audio_test_2.m4a")
+audio = whisper_ts.load_audio("/Users/aranzarodriguez/Voice Sentiment Tracking/voicesentiment/client/audio/audio_test_3.m4a")
 model = whisper_ts.load_model("tiny", device="cpu")
 result = whisper_ts.transcribe(model, audio, language="en")
 
@@ -69,6 +70,64 @@ for sent in sentences:
 
 # Sentiment Analysis
 
+data = {
+    "sentence": [],
+    "positive": [],
+    "negative": [],
+    "timestamp": []
+}
+
 for sent in timestampedSentences:
+    
     sent = sentimentAnalysis.analyzeSentiment(sent)
-    print(sent.summary())
+    #print(sent.summary())
+
+    data["sentence"].append(sent.sentence)
+    data["positive"].append(sent.positive)
+    data["negative"].append(sent.negative)
+    data["timestamp"].append((sent.startTime + sent.endTime)/2)
+
+df = pd.DataFrame(data)
+print(df.head())
+
+# Re-structure the data frame... 
+df_melted = pd.melt(
+    df, 
+    id_vars=["timestamp", "sentence"], # Fixed columns 
+    value_vars=["positive", "negative"], # columns that will be merged together 
+    var_name="sentiment", # new name of the column that will hold positive/negative together
+    value_name="score") # name of the column that will hold the old value that used to be under positive/negative 
+
+print(df_melted)
+
+# Visual distribution of sentiment 
+
+# Create interactive plot
+fig = px.line(
+    df_melted,
+    x="timestamp",
+    y="score",
+    color="sentiment",
+    markers=True,
+    line_shape="spline",
+    hover_data=["sentence"],
+    color_discrete_map={"positive": "green", "negative": "red"}
+)
+
+fig.update_layout(title="Sentiment Scores Over Time", yaxis_range=[0,1])
+
+fig.show()
+
+'''
+sns.set_theme(style="whitegrid")
+
+sns.lineplot(data=df_melted, x="timestamp", y="score", hue="sentiment", palette={"positive": "green", "negative": "red"})
+
+
+plt.title("Negative Sentiment Score Over Time")
+plt.ylim(0,1)
+plt.xlabel("Time (s)")
+plt.ylabel("Negative Sentiment Score")
+plt.show()
+'''
+

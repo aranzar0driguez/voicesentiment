@@ -1,7 +1,7 @@
 
 import csv
 import urllib.request
-from transformers import AutoTokenizer, TFAutoModelForSequenceClassification, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from scipy.special import softmax
 import numpy as np
 from sentence import Sentence

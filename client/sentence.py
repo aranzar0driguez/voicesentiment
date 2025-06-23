@@ -7,7 +7,7 @@ class Sentence:
         self.negative = negative 
         self.neutral = neutral
         self.startTime = startTime
-        self.endTIme = endTime
+        self.endTime = endTime
 
     def summary(self):
         return {

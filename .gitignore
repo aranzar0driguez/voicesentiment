@@ -2,3 +2,4 @@
 *.safetensors
 cardiffnlp/
 *.safetensors
+__pycache__
